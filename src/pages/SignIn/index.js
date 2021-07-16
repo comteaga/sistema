@@ -1,24 +1,32 @@
-import './signIn.css';
+import { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+
+import { AuthContext } from '../../contexts/auth';
+import './signIn.css';
 import logo from '../../assets/logo.png';
 
 function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const { signIn, loadingAuth } = useContext(AuthContext);
+
   function handleSubmit(e) {
     //preventDefault faz com que a página não seja recarregada
     e.preventDefault();
-    alert('clicou');
+
+    if (email !== '' && password !== '') {
+      signIn(email, password);
+    }
   }
 
   return (
     <div className="container-center">
       <div className="login">
         <div className="logo-area">
-          <img src={logo} alt="Logo do Sistema" />
+          <img src={logo} alt="Sistema Logo" />
         </div>
+
         <form onSubmit={handleSubmit}>
           <h1>Entrar</h1>
           <input
@@ -26,14 +34,16 @@ function SignIn() {
             placeholder="email@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-          ></input>
+          />
           <input
             type="password"
-            placeholder="********"
+            placeholder="*******"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-          ></input>
-          <button type="submit">Acessar</button>
+          />
+          <button type="submit">
+            {loadingAuth ? 'Carregando...' : 'Acessar'}
+          </button>
         </form>
 
         <Link to="/register">Criar uma conta</Link>

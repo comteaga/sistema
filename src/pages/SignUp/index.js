@@ -1,16 +1,22 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import logo from '../../assets/logo.png';
+import { AuthContext } from '../../contexts/auth';
 
 function SignUp() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const { signUp, loadingAuth } = useContext(AuthContext);
+
   function handleSubmit(e) {
     //preventDefault faz com que a página não seja recarregada
     e.preventDefault();
-    alert('clicou');
+
+    if (nome !== '' && email !== '' && password !== '') {
+      signUp(email, password, nome);
+    }
   }
 
   return (
@@ -26,20 +32,22 @@ function SignUp() {
             placeholder="Seu Nome"
             value={nome}
             onChange={(e) => setNome(e.target.value)}
-          ></input>
+          />
           <input
             type="text"
             placeholder="email@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-          ></input>
+          />
           <input
             type="password"
             placeholder="********"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-          ></input>
-          <button type="submit">Acessar</button>
+          />
+          <button type="submit">
+            {loadingAuth ? 'Carregando...' : 'Acessar'}
+          </button>
         </form>
 
         <Link to="/">Já tem uma conta? Entre</Link>
