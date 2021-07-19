@@ -1,13 +1,12 @@
 import { useState, useContext } from 'react';
 import './profile.css';
+import { FiSettings, FiUpload } from 'react-icons/fi';
 import Header from '../../components/Header';
 import Title from '../../components/Title';
 import avatar from '../../assets/avatar.png';
 
 import firebase from '../../services/firebaseConnection';
 import { AuthContext } from '../../contexts/auth';
-
-import { FiSettings, FiUpload } from 'react-icons/fi';
 
 export default function Profile() {
   const { user, signOut, setUser, storageUser } = useContext(AuthContext);
@@ -49,7 +48,7 @@ export default function Profile() {
           .child(imageAvatar.name)
           .getDownloadURL()
           .then(async (url) => {
-            let urlFoto = url;
+            const urlFoto = url;
 
             await firebase
               .firestore()
@@ -57,13 +56,13 @@ export default function Profile() {
               .doc(user.uid)
               .update({
                 avatarUrl: urlFoto,
-                nome: nome,
+                nome,
               })
               .then(() => {
-                let data = {
+                const data = {
                   ...user,
                   avatarUrl: urlFoto,
-                  nome: nome,
+                  nome,
                 };
                 setUser(data);
                 storageUser(data);
@@ -81,12 +80,12 @@ export default function Profile() {
         .collection('users')
         .doc(user.uid)
         .update({
-          nome: nome,
+          nome,
         })
         .then(() => {
-          let data = {
+          const data = {
             ...user,
-            nome: nome,
+            nome,
           };
           setUser(data);
           storageUser(data);
@@ -139,7 +138,7 @@ export default function Profile() {
             />
 
             <label>Email</label>
-            <input type="text" value={email} disabled={true} />
+            <input type="text" value={email} disabled />
 
             <button type="submit">Salvar</button>
           </form>

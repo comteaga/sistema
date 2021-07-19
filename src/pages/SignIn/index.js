@@ -13,6 +13,7 @@ function SignIn() {
 
   function handleSubmit(e) {
     //preventDefault faz com que a página não seja recarregada
+
     e.preventDefault();
 
     if (email !== '' && password !== '') {
