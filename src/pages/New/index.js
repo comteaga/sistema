@@ -2,18 +2,23 @@ import { useState, useEffect, useContext } from 'react';
 import './new.css';
 import { FiPlusCircle } from 'react-icons/fi';
 import { toast } from 'react-toastify';
+import { useHistory, useParams } from 'react-router-dom';
 import Header from '../../components/Header';
 import Title from '../../components/Title';
 import { AuthContext } from '../../contexts/auth';
 import firebase from '../../services/firebaseConnection';
 
 export default function New() {
+  const { id } = useParams();
+  const history = useHistory();
+
   const [loadingCustomers, setLoadingCustomers] = useState(true);
   const [customers, setCustomers] = useState([]);
   const [customerSelected, setCustomerSelected] = useState(0);
   const [assunto, setAssunto] = useState('Suporte');
   const [status, setStatus] = useState('Aberto');
   const [complemento, setComplemento] = useState('');
+  const [idCustomer, setIdCustomer] = useState(false);
 
   const { user } = useContext(AuthContext);
 
@@ -41,6 +46,10 @@ export default function New() {
 
           setCustomers(lista);
           setLoadingCustomers(false);
+
+          if (id) {
+            loadId(lista);
+          }
         })
         .catch((error) => {
           console.log(error);
@@ -50,14 +59,64 @@ export default function New() {
     }
 
     loadCustomers();
-  }, []);
+  }, [id]);
 
-  function hancleChangeCustomers(e) {
+  function handleChangeCustomers(e) {
     setCustomerSelected(e.target.value);
+  }
+
+  async function loadId(lista) {
+    await firebase
+      .firestore()
+      .collection('chamados')
+      .doc(id)
+      .get()
+      .then((snapshot) => {
+        setAssunto(snapshot.data().assunto);
+        setStatus(snapshot.data().status);
+        setComplemento(snapshot.data().complemento);
+
+        const index = lista.findIndex(
+          (item) => item.id === snapshot.data().clienteId,
+        );
+        setCustomerSelected(index);
+        setIdCustomer(true);
+      })
+      .catch((error) => {
+        console.log('Erro no id passado: ', error);
+        setIdCustomer(false);
+      });
   }
 
   async function handleRegister(e) {
     e.preventDefault();
+
+    if (idCustomer) {
+      await firebase
+        .firestore()
+        .collection('chamados')
+        .doc(id)
+        .update({
+          cliente: customers[customerSelected].nomeFantasia,
+          clienteId: customers[customerSelected].id,
+          assunto,
+          status,
+          complemento,
+          userId: user.uid,
+        })
+        .then(() => {
+          toast.success('Chamado editado com sucesso!');
+          setCustomerSelected(0);
+          setComplemento('');
+          history.push('/dashboard');
+        })
+        .catch((error) => {
+          toast.error('Ops, erro ao registrar. Tente novamente mais tarde');
+          console.log(error);
+        });
+      return;
+    }
+
     await firebase
       .firestore()
       .collection('chamados')
@@ -92,6 +151,7 @@ export default function New() {
   return (
     <div>
       <Header />
+
       <div className="content">
         <Title name="Novo chamado">
           <FiPlusCircle size={25} />
@@ -100,10 +160,11 @@ export default function New() {
         <div className="container">
           <form className="form-profile" onSubmit={handleRegister}>
             <label>Cliente</label>
+
             {loadingCustomers ? (
               <input type="text" disabled value="Carregando clientes..." />
             ) : (
-              <select value={customerSelected} onChange={hancleChangeCustomers}>
+              <select value={customerSelected} onChange={handleChangeCustomers}>
                 {customers.map((item, index) => {
                   return (
                     <option key={item.id} value={index}>
@@ -117,7 +178,7 @@ export default function New() {
             <label>Assunto</label>
             <select value={assunto} onChange={handleChangeSelect}>
               <option value="Suporte">Suporte</option>
-              <option value="Visita tecnnica">Visita técnica</option>
+              <option value="Visita Tecnica">Visita Tecnica</option>
               <option value="Financeiro">Financeiro</option>
             </select>
 
@@ -130,7 +191,7 @@ export default function New() {
                 onChange={handleOptionChange}
                 checked={status === 'Aberto'}
               />
-              <span>Em aberto</span>
+              <span>Em Aberto</span>
 
               <input
                 type="radio"
@@ -150,10 +211,11 @@ export default function New() {
               />
               <span>Atendido</span>
             </div>
+
             <label>Complemento</label>
             <textarea
               type="text"
-              placeholder="Descreva seu problema (opicional)."
+              placeholder="Descreva seu problema (opcional)."
               value={complemento}
               onChange={(e) => setComplemento(e.target.value)}
             />
